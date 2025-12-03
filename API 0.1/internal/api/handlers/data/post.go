@@ -1,58 +1,37 @@
 package data
 
 import (
-	"context"
-	"encoding/json"
-	"goapi/internal/api/repository/models"
-	service "goapi/internal/api/service/data"
-	"log"
-	"net/http"
-	"time"
+    "encoding/json"
+    "goapi/internal/api/repository/models"
+    serviceData "goapi/internal/api/service/data"
+    "log"
+    "net/http"
 )
 
-// * User sends a POST request to /data with a JSON payload in the request body *
-// * curl -X POST http://127.0.0.1:8080/data -i -u admin:password -H "Content-Type: application/json" -d '{"device_id": "device1", "device_name": "device1", "reading": 1.0, "type": "type1", "date_time": "2021-01-01T00:00:00Z", "description": "description1", "status": "active", "created_at": "2021-01-01T00:00:00Z"}'
-func PostHandler(w http.ResponseWriter, r *http.Request, logger *log.Logger, ds service.DataService) {
-	var data models.Data
+type PostHandler struct {
+    Service serviceData.DataService
+}
 
-	// * Decode the JSON payload from the request body into the data struct
-	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-		// * This is a User Error: format of body is invalid, response in JSON and with a 400 status code
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"error": "Invalid request data. Please check your input."}`))
-		return
-	}
+func NewPostHandler(service serviceData.DataService) *PostHandler {
+    return &PostHandler{Service: service}
+}
 
-	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
-	defer cancel()
+func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+    var payload models.Data
 
-	// * Try to create the data in the database
-	if err := ds.Create(&data, ctx); err != nil {
-		switch err.(type) {
-		case service.DataError:
-			// * If the error is a DataError, handle it as a client error
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(`{"error": "` + err.Error() + `"}`))
-			return
-		default:
-			// * If it is not a DataError, handle it as a server error
-			logger.Println("Error creating data:", err, data)
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error": "Internal server error."}`))
-			return
-		}
-	}
-	// * Return the data to the user as JSON with a 201 Created status code
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated) 
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		logger.Println("Error encoding data:", err, data)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error": "Internal server error."}`))
-		return
-	}
+    if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+        http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+        log.Println("JSON decode error:", err)
+        return
+    }
+    log.Printf("Received POST payload: %+v\n", payload)
+
+    if err := h.Service.Create(&payload, r.Context()); err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        log.Println("Create error:", err)
+        return
+    }
+
+    w.WriteHeader(http.StatusCreated)
+    w.Write([]byte("Data created successfully"))
 }

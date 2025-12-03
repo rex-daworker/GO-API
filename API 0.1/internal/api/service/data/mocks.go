@@ -13,11 +13,9 @@ func (m *MockDataServiceSuccessful) ReadMany(page int, rowsPerPage int, ctx cont
         {ID: 2, DeviceID: "device2", DeviceName: "device2", Reading: 2.0, Type: "type2", DateTime: "2021-01-01T00:00:00Z", Description: "description2"},
     }, nil
 }
-
 func (m *MockDataServiceSuccessful) ReadOne(id int, ctx context.Context) (*models.Data, error) {
     return &models.Data{ID: 1, DeviceID: "device1", DeviceName: "device1", Reading: 1.0, Type: "type1", DateTime: "2021-01-01T00:00:00Z", Description: "description1"}, nil
 }
-
 func (m *MockDataServiceSuccessful) Create(data *models.Data, ctx context.Context) error { return nil }
 func (m *MockDataServiceSuccessful) Update(data *models.Data, ctx context.Context) (int64, error) {
     return 1, nil
