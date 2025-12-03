@@ -59,7 +59,7 @@ func (ds *DataServiceSQLite) ValidateData(data *models.Data) error {
 	if _, err := time.Parse("2006-01-02T15:04:05Z", data.DateTime); err != nil {
 		errMsg += "DateTime must be in format 2006-01-02T15:04:05Z. "
 	}
-	if data.Reading < 0 {
+	if data.Reading < 0 { 
 		errMsg += "Reading must be >= 0. "
 	}
 	if data.Status != "active" && data.Status != "inactive" {
