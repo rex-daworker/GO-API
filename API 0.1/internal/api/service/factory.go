@@ -4,7 +4,7 @@ import (
     "context"
     "database/sql"
     "goapi/internal/api/repository/DAL/SQLite"
-    service "goapi/internal/api/service/data"
+    data "goapi/internal/api/service/data"
     "log"
 )
 
@@ -21,20 +21,16 @@ type ServiceFactory struct {
 }
 
 func NewServiceFactory(db *sql.DB, logger *log.Logger, ctx context.Context) *ServiceFactory {
-    return &ServiceFactory{
-        db:     db,
-        logger: logger,
-        ctx:    ctx,
-    }
+    return &ServiceFactory{db: db, logger: logger, ctx: ctx}
 }
 
-func (sf *ServiceFactory) CreateDataService(serviceType DataServiceType) (*service.DataServiceSQLite, error) {
+func (sf *ServiceFactory) CreateDataService(serviceType DataServiceType) (data.DataService, error) {
     switch serviceType {
     case SQLiteDataService:
         repo := SQLite.NewDataRepository(sf.db)
-        ds := service.NewDataServiceSQLite(repo)
+        ds := data.NewDataServiceSQLite(repo)
         return ds, nil
     default:
-        return nil, service.DataError{Message: "Invalid data service type."}
+        return nil, data.DataError{Message: "Invalid data service type."}
     }
 }
