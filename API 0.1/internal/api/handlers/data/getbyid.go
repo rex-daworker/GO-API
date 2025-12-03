@@ -17,6 +17,7 @@ func GetByIDHandler(w http.ResponseWriter, r *http.Request, logger *log.Logger, 
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		// * This is a User Error: format of id is invalid, response in JSON and with a 400 status code
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(`{"error": "Missconfigured ID."}`))
 		return
@@ -33,16 +34,20 @@ func GetByIDHandler(w http.ResponseWriter, r *http.Request, logger *log.Logger, 
 	}
 	if data == nil {
 		// * This is a User Error, response in JSON and with a 404 status code
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(`{"error": "Resource not found."}`))
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		logger.Println("Error encoding data:", err, data)
-		http.Error(w, "Internal server error.", http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error": "Internal server error."}`))
 		return
 	}
 }

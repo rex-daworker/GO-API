@@ -11,14 +11,14 @@ import (
 )
 
 // * User sends a POST request to /data with a JSON payload in the request body *
-// * curl -X POST http://127.0.0.1:8080/data -i -u admin:password -H "Content-Type: application/json" -d '{"device_id": "device1", "device_name": "device1", "value": 1.0, "type": "type1", "date_time": "2021-01-01T00:00:00Z", "description": "description1"}'
+// * curl -X POST http://127.0.0.1:8080/data -i -u admin:password -H "Content-Type: application/json" -d '{"device_id": "device1", "device_name": "device1", "reading": 1.0, "type": "type1", "date_time": "2021-01-01T00:00:00Z", "description": "description1", "status": "active", "created_at": "2021-01-01T00:00:00Z"}'
 func PostHandler(w http.ResponseWriter, r *http.Request, logger *log.Logger, ds service.DataService) {
 	var data models.Data
 
 	// * Decode the JSON payload from the request body into the data struct
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-
 		// * This is a User Error: format of body is invalid, response in JSON and with a 400 status code
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(`{"error": "Invalid request data. Please check your input."}`))
 		return
@@ -32,22 +32,27 @@ func PostHandler(w http.ResponseWriter, r *http.Request, logger *log.Logger, ds 
 		switch err.(type) {
 		case service.DataError:
 			// * If the error is a DataError, handle it as a client error
+			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(`{"error": "` + err.Error() + `"}`))
 			return
 		default:
 			// * If it is not a DataError, handle it as a server error
 			logger.Println("Error creating data:", err, data)
-			http.Error(w, "Internal server error.", http.StatusInternalServerError)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error": "Internal server error."}`))
 			return
 		}
 	}
-
 	// * Return the data to the user as JSON with a 201 Created status code
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		logger.Println("Error encoding data:", err, data)
-		http.Error(w, "Internal server error.", http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error": "Internal server error."}`))
 		return
 	}
 }

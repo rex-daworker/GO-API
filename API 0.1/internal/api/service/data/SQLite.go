@@ -74,6 +74,21 @@ func (ds *DataServiceSQLite) ValidateData(data *models.Data) error {
 	if err != nil {
 		errMsg += "DateTime must be in the format: 2021-01-01T12:00:00Z. "
 	}
+
+	// Validate reading (must be >= 0)
+	if data.Reading < 0 {
+		errMsg += "Reading must be greater than or equal to 0. "
+	}
+
+	// Validate status (must be either "active" or "inactive")
+	if data.Status != "active" && data.Status != "inactive" {
+		errMsg += "Status must be either 'active' or 'inactive'. "
+	}
+
+	// Auto-fill created_at if empty
+	if data.CreatedAt == "" {
+		data.CreatedAt = time.Now().UTC().Format("2006-01-02T15:04:05Z")
+	}
 	if errMsg != "" {
 		return DataError{Message: errMsg}
 	}

@@ -16,6 +16,7 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request, logger *log.Logger, d
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		// * This is a User Error: format of id is invalid, response in JSON and with a 400 status code
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(`{"error": "Missconfigured ID."}`))
 		return
@@ -27,12 +28,15 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request, logger *log.Logger, d
 	aff, err := ds.Delete(&models.Data{ID: id}, ctx)
 	if err != nil {
 		logger.Println("Could not delete data:", err, id)
-		http.Error(w, "Internal Server error", http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error": "Internal Server error"}`))
 		return
 	}
 
 	// * Check if the data was found and deleted
 	if aff == 0 {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(`{"error": "Resource not found."}`))
 		return
