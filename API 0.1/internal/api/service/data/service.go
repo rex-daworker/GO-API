@@ -16,7 +16,7 @@ func NewDataServiceSQLite(repo models.DataRepository) *DataServiceSQLite {
 
 func (ds *DataServiceSQLite) Create(data *models.Data, ctx context.Context) error {
     if err := ds.ValidateData(data); err != nil {
-        return err // ✅ FIXED: returns the actual validation error
+        return err
     }
     return ds.repo.Create(data, ctx)
 }
