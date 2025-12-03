@@ -47,7 +47,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request, logger *log.Logger, ds 
 	}
 	// * Return the data to the user as JSON with a 201 Created status code
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusCreated) 
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		logger.Println("Error encoding data:", err, data)
 		w.Header().Set("Content-Type", "application/json")
