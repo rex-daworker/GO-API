@@ -24,8 +24,10 @@ func NewServer(ctx context.Context, sf *service.ServiceFactory, logger *log.Logg
     }
 
     // Routes
-    mux.Handle("/data", dataHandlers.NewPostHandler(dataSvc))   // POST /data
-    mux.Handle("/data/", dataHandlers.NewPutHandler(dataSvc))   // PUT /data/{id}
+    // POST /data
+    mux.Handle("/data", method("POST", dataHandlers.NewPostHandler(dataSvc)))
+    // PUT /data/{id}
+    mux.Handle("/data/", method("PUT", dataHandlers.NewPutHandler(dataSvc)))
 
     return &Server{
         mux:    mux,
@@ -39,6 +41,17 @@ func (s *Server) ListenAndServe(addr string) error {
 }
 
 func (s *Server) Shutdown() error {
-    // Extend with context-aware shutdown if needed
+    // Add graceful shutdown logic if you expand beyond ServeMux
     return nil
+}
+
+// method wraps a handler and enforces HTTP method, returning 405 for others.
+func method(allowed string, h http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        if r.Method != allowed {
+            http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+            return
+        }
+        h.ServeHTTP(w, r)
+    })
 }

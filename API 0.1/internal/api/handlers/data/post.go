@@ -19,6 +19,7 @@ func NewPostHandler(service serviceData.DataService) *PostHandler {
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     var payload models.Data
 
+    // Decode JSON body
     if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
         http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
         log.Println("JSON decode error:", err)
@@ -26,6 +27,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     }
     log.Printf("Received POST payload: %+v\n", payload)
 
+    // Create via service (returns validation errors)
     if err := h.Service.Create(&payload, r.Context()); err != nil {
         http.Error(w, err.Error(), http.StatusBadRequest)
         log.Println("Create error:", err)
@@ -33,5 +35,5 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     }
 
     w.WriteHeader(http.StatusCreated)
-    w.Write([]byte("Data created successfully"))
+    _, _ = w.Write([]byte("Data created successfully"))
 }
