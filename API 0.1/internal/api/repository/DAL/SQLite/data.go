@@ -18,7 +18,6 @@ func (repo *DataRepositorySQLite) Create(data *models.Data, ctx context.Context)
     stmt := `INSERT INTO data (
         device_id, device_name, reading, type, date_time, description, status, created_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-
     _, err := repo.sqlDB.ExecContext(ctx, stmt,
         data.DeviceID, data.DeviceName, data.Reading,
         data.Type, data.DateTime, data.Description,
