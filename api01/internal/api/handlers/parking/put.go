@@ -40,6 +40,11 @@ func (h *PutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    if err := h.Service.Validate(&ev); err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+
     if _, err := h.Service.Update(&ev, r.Context()); err != nil {
         http.Error(w, err.Error(), http.StatusBadRequest)
         log.Println("Update error:", err)

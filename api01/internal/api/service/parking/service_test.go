@@ -11,9 +11,11 @@ import (
 type dummyRepo struct{}
 
 func (d dummyRepo) Create(ev *models.ParkingEvent, ctx context.Context) error { return nil }
-func (d dummyRepo) ReadOne(id int, ctx context.Context) (*models.ParkingEvent, error) { return nil, nil }
+func (d dummyRepo) ReadOne(id int, ctx context.Context) (*models.ParkingEvent, error) {
+    return &models.ParkingEvent{ID: id, SlotID: "A1"}, nil
+}
 func (d dummyRepo) ReadMany(page int, rowsPerPage int, ctx context.Context) ([]*models.ParkingEvent, error) {
-    return nil, nil
+    return []*models.ParkingEvent{}, nil
 }
 func (d dummyRepo) Update(ev *models.ParkingEvent, ctx context.Context) (int64, error) { return 1, nil }
 func (d dummyRepo) Delete(ev *models.ParkingEvent, ctx context.Context) (int64, error) { return 1, nil }

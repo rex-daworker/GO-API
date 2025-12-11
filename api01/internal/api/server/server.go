@@ -23,7 +23,7 @@ func NewServer(ctx context.Context, sf *service.ServiceFactory, logger *log.Logg
         logger.Println("Error creating parking service:", err)
     }
 
-    // Protected routes
+    // Protected routes using Basic Auth and method guard
     mux.Handle("/parking", withAuth(method("POST", parking.NewPostHandler(parkingSvc))))
     mux.Handle("/parking/", withAuth(method("PUT", parking.NewPutHandler(parkingSvc))))
 
@@ -38,6 +38,7 @@ func (s *Server) ListenAndServe(addr string) error {
     return http.ListenAndServe(addr, s.mux)
 }
 
+// Placeholder for graceful shutdown extensions (e.g., closing connections)
 func (s *Server) Shutdown() error { return nil }
 
 func method(allowed string, h http.Handler) http.Handler {
@@ -52,8 +53,8 @@ func method(allowed string, h http.Handler) http.Handler {
 
 // Simple Basic Auth middleware
 func withAuth(h http.Handler) http.Handler {
-    const user = "admin_oghenerobo" // CHANGE HERE
-    const pass = "StrongPass!2025"  // CHANGE HERE
+    const user = "admin_oghenerobo"
+    const pass = "StrongPass!2025"
 
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         u, p, ok := r.BasicAuth()

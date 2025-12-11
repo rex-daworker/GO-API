@@ -26,6 +26,11 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    if err := h.Service.Validate(&ev); err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+
     if err := h.Service.Create(&ev, r.Context()); err != nil {
         http.Error(w, err.Error(), http.StatusBadRequest)
         log.Println("Create error:", err)

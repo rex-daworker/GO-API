@@ -1,71 +1,69 @@
-// internal/api/service/parking/service.go
 package parking
 
 import (
-	"context"
-	"strings"
-	"time"
+    "context"
+    "strings"
+    "time"
 
-	"goapi/internal/api/repository/models"
+    "goapi/internal/api/repository/models"
 )
 
-type ParkingServiceSQLite struct {
-	repo models.ParkingRepository
+type repo interface {
+    Create(ev *models.ParkingEvent, ctx context.Context) error
+    ReadOne(id int, ctx context.Context) (*models.ParkingEvent, error)
+    ReadMany(page int, rowsPerPage int, ctx context.Context) ([]*models.ParkingEvent, error)
+    Update(ev *models.ParkingEvent, ctx context.Context) (int64, error)
+    Delete(ev *models.ParkingEvent, ctx context.Context) (int64, error)
 }
 
-func NewParkingServiceSQLite(repo models.ParkingRepository) *ParkingServiceSQLite {
-	return &ParkingServiceSQLite{repo: repo}
+type parkingServiceSQLite struct {
+    repo repo
 }
 
-func (ps *ParkingServiceSQLite) Create(ev *models.ParkingEvent, ctx context.Context) error {
-	if err := ps.Validate(ev); err != nil {
-		return err
-	}
-	return ps.repo.Create(ev, ctx)
+func NewParkingServiceSQLite(r repo) ParkingService {
+    return &parkingServiceSQLite{repo: r}
 }
 
-func (ps *ParkingServiceSQLite) ReadOne(id int, ctx context.Context) (*models.ParkingEvent, error) {
-	return ps.repo.ReadOne(id, ctx)
+func (s *parkingServiceSQLite) Create(ev *models.ParkingEvent, ctx context.Context) error {
+    // Default updated_at if empty
+    if strings.TrimSpace(ev.UpdatedAt) == "" {
+        ev.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
+    }
+    return s.repo.Create(ev, ctx)
 }
 
-func (ps *ParkingServiceSQLite) ReadMany(page int, rowsPerPage int, ctx context.Context) ([]*models.ParkingEvent, error) {
-	return ps.repo.ReadMany(page, rowsPerPage, ctx)
+func (s *parkingServiceSQLite) ReadOne(id int, ctx context.Context) (*models.ParkingEvent, error) {
+    return s.repo.ReadOne(id, ctx)
 }
 
-func (ps *ParkingServiceSQLite) Update(ev *models.ParkingEvent, ctx context.Context) (int64, error) {
-	if err := ps.Validate(ev); err != nil {
-		return 0, err
-	}
-	return ps.repo.Update(ev, ctx)
+func (s *parkingServiceSQLite) ReadMany(page int, rowsPerPage int, ctx context.Context) ([]*models.ParkingEvent, error) {
+    return s.repo.ReadMany(page, rowsPerPage, ctx)
 }
 
-func (ps *ParkingServiceSQLite) Delete(ev *models.ParkingEvent, ctx context.Context) (int64, error) {
-	return ps.repo.Delete(ev, ctx)
+func (s *parkingServiceSQLite) Update(ev *models.ParkingEvent, ctx context.Context) (int64, error) {
+    if strings.TrimSpace(ev.UpdatedAt) == "" {
+        ev.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
+    }
+    return s.repo.Update(ev, ctx)
 }
 
-func (ps *ParkingServiceSQLite) Validate(ev *models.ParkingEvent) error {
-	var errs []string
+func (s *parkingServiceSQLite) Delete(ev *models.ParkingEvent, ctx context.Context) (int64, error) {
+    return s.repo.Delete(ev, ctx)
+}
 
-	if ev.SlotID == "" || len(ev.SlotID) > 20 {
-		errs = append(errs, "slot_id is required and must be <= 20 chars")
-	}
-	if ev.Status != "free" && ev.Status != "occupied" && ev.Status != "unknown" {
-		errs = append(errs, "status must be 'free', 'occupied', or 'unknown'")
-	}
-	if ev.Action != "open" && ev.Action != "close" && ev.Action != "none" {
-		errs = append(errs, "action must be 'open', 'close', or 'none'")
-	}
-	if ev.ThresholdCM < 5 || ev.ThresholdCM > 200 {
-		errs = append(errs, "threshold_cm must be between 5 and 200")
-	}
-	if ev.DistanceCM < 0 || ev.DistanceCM > 1000 {
-		errs = append(errs, "distance_cm must be between 0 and 1000")
-	}
-	if ev.UpdatedAt == "" {
-		ev.UpdatedAt = time.Now().UTC().Format("2006-01-02T15:04:05Z")
-	}
-	if len(errs) > 0 {
-		return ParkingError{Message: strings.Join(errs, "; ")}
-	}
-	return nil
+func (s *parkingServiceSQLite) Validate(ev *models.ParkingEvent) error {
+    // Minimal validation rules
+    if strings.TrimSpace(ev.SlotID) == "" {
+        return ParkingError{Message: "slot_id is required"}
+    }
+    if ev.ThresholdCM <= 0 {
+        return ParkingError{Message: "threshold_cm must be > 0"}
+    }
+    if strings.TrimSpace(ev.Status) == "" {
+        return ParkingError{Message: "status is required"}
+    }
+    if strings.TrimSpace(ev.Action) == "" {
+        return ParkingError{Message: "action is required"}
+    }
+    return nil
 }
