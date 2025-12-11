@@ -1,5 +1,4 @@
 package parking
-// internal/api/handlers/parking/post.go
 
 import (
     "encoding/json"
@@ -10,12 +9,11 @@ import (
     "goapi/internal/api/service/parking"
 )
 
-
 type PostHandler struct {
-    Service svc.ParkingService
+    Service parking.ParkingService
 }
 
-func NewPostHandler(service svc.ParkingService) *PostHandler {
+func NewPostHandler(service parking.ParkingService) *PostHandler {
     return &PostHandler{Service: service}
 }
 

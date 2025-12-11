@@ -1,4 +1,3 @@
-// internal/api/service/factory.go
 package service
 
 import (
@@ -9,7 +8,6 @@ import (
     "goapi/internal/api/repository/DAL/SQLite"
     "goapi/internal/api/service/parking"
 )
-
 
 type ParkingServiceType int
 
@@ -27,13 +25,13 @@ func NewServiceFactory(db *sql.DB, logger *log.Logger, ctx context.Context) *Ser
     return &ServiceFactory{db: db, logger: logger, ctx: ctx}
 }
 
-func (sf *ServiceFactory) CreateParkingService(serviceType ParkingServiceType) (pkg.ParkingService, error) {
+func (sf *ServiceFactory) CreateParkingService(serviceType ParkingServiceType) (parking.ParkingService, error) {
     switch serviceType {
     case SQLiteParkingService:
         repo := SQLite.NewParkingRepository(sf.db)
-        svc := pkg.NewParkingServiceSQLite(repo)
+        svc := parking.NewParkingServiceSQLite(repo)
         return svc, nil
     default:
-        return nil, pkg.ParkingError{Message: "Invalid parking service type"}
+        return nil, parking.ParkingError{Message: "Invalid parking service type"}
     }
 }

@@ -1,4 +1,3 @@
-// internal/api/server/server.go
 package server
 
 import (
@@ -9,7 +8,6 @@ import (
     "goapi/internal/api/handlers/parking"
     "goapi/internal/api/service"
 )
-
 
 type Server struct {
     mux    *http.ServeMux
@@ -26,8 +24,8 @@ func NewServer(ctx context.Context, sf *service.ServiceFactory, logger *log.Logg
     }
 
     // Protected routes
-    mux.Handle("/parking", withAuth(method("POST", ph.NewPostHandler(parkingSvc))))
-    mux.Handle("/parking/", withAuth(method("PUT", ph.NewPutHandler(parkingSvc))))
+    mux.Handle("/parking", withAuth(method("POST", parking.NewPostHandler(parkingSvc))))
+    mux.Handle("/parking/", withAuth(method("PUT", parking.NewPutHandler(parkingSvc))))
 
     return &Server{
         mux:    mux,

@@ -1,4 +1,3 @@
-// internal/api/handlers/parking/put.go
 package parking
 
 import (
@@ -12,12 +11,11 @@ import (
     "goapi/internal/api/service/parking"
 )
 
-
 type PutHandler struct {
-    Service svc.ParkingService
+    Service parking.ParkingService
 }
 
-func NewPutHandler(service svc.ParkingService) *PutHandler {
+func NewPutHandler(service parking.ParkingService) *PutHandler {
     return &PutHandler{Service: service}
 }
 
