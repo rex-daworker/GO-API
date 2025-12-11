@@ -1,42 +1,33 @@
+// internal/api/repository/DAL/SQLite/sqlite.go
 package SQLite
 
 import (
-	"database/sql"
-	"goapi/internal/api/repository/DAL"
-	"time"
-
-	_ "github.com/mattn/go-sqlite3"
+    "database/sql"
+    _ "github.com/mattn/go-sqlite3"
 )
 
-type SQLite struct {
-	sqlDB          *sql.DB
-	dataSourceName string
-}
+func NewSqlite(filename string) (*sql.DB, error) {
+    db, err := sql.Open("sqlite3", filename)
+    if err != nil {
+        return nil, err
+    }
 
-func NewSqlite(dataSourceName string) (DAL.SQLDatabase, error) {
+    _, err = db.Exec(`
+        CREATE TABLE IF NOT EXISTS parking_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            slot_id TEXT NOT NULL,
+            vehicle_id TEXT,
+            distance_cm REAL,
+            status TEXT NOT NULL,
+            action TEXT NOT NULL,
+            threshold_cm INTEGER NOT NULL,
+            updated_at TEXT NOT NULL,
+            note TEXT
+        );
+    `)
+    if err != nil {
+        return nil, err
+    }
 
-	sqlDB, err := sql.Open("sqlite3", dataSourceName)
-	if err != nil {
-		return nil, err
-	}
-
-	// Set connection pool settings
-	sqlDB.SetMaxOpenConns(10)
-	sqlDB.SetMaxIdleConns(5)
-	sqlDB.SetConnMaxLifetime(5 * time.Minute)
-
-	Sqlite := &SQLite{
-		sqlDB:          sqlDB,
-		dataSourceName: dataSourceName,
-	}
-
-	return Sqlite, nil
-}
-
-func (s *SQLite) Connection() *sql.DB {
-	return s.sqlDB
-}
-
-func (s *SQLite) Close() error {
-	return s.sqlDB.Close()
+    return db, nil
 }

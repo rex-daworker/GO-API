@@ -1,77 +1,68 @@
+// internal/api/server/server.go
 package server
 
 import (
-	"context"
-	"goapi/internal/api/handlers/data"
-	"goapi/internal/api/middleware"
-	"goapi/internal/api/service"
-	"log"
-	"net/http"
+    "context"
+    "log"
+    "net/http"
+
+    ph "github.com/rex-daworker/GO-API/internal/api/handlers/parking"
+    "github.com/rex-daworker/GO-API/internal/api/service"
 )
 
 type Server struct {
-	ctx        context.Context
-	HTTPServer *http.Server
-	logger     *log.Logger
+    mux    *http.ServeMux
+    ctx    context.Context
+    logger *log.Logger
 }
 
 func NewServer(ctx context.Context, sf *service.ServiceFactory, logger *log.Logger) *Server {
+    mux := http.NewServeMux()
 
-	mux := http.NewServeMux()
-	err := setupDataHandlers(mux, sf, logger)
-	if err != nil {
-		logger.Fatalf("Error setting up data handlers: %v", err)
-	}
+    parkingSvc, err := sf.CreateParkingService(service.SQLiteParkingService)
+    if err != nil {
+        logger.Println("Error creating parking service:", err)
+    }
 
-	middlewares := []middleware.Middleware{
-		middleware.BasicAuthenticationMiddleware,
-		middleware.CommonMiddleware,
-	}
+    // Protected routes
+    mux.Handle("/parking", withAuth(method("POST", ph.NewPostHandler(parkingSvc))))
+    mux.Handle("/parking/", withAuth(method("PUT", ph.NewPutHandler(parkingSvc))))
 
-	return &Server{
-		ctx:    ctx,
-		logger: logger,
-		HTTPServer: &http.Server{
-			Handler: middleware.ChainMiddleware(mux, middlewares...),
-		},
-	}
+    return &Server{
+        mux:    mux,
+        ctx:    ctx,
+        logger: logger,
+    }
 }
 
-func (api *Server) Shutdown() error {
-	api.logger.Println("Gracefully shutting down server...")
-	return api.HTTPServer.Shutdown(api.ctx)
+func (s *Server) ListenAndServe(addr string) error {
+    return http.ListenAndServe(addr, s.mux)
 }
 
-func (api *Server) ListenAndServe(addr string) error {
-	api.HTTPServer.Addr = addr
-	return api.HTTPServer.ListenAndServe()
+func (s *Server) Shutdown() error { return nil }
+
+func method(allowed string, h http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        if r.Method != allowed {
+            http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+            return
+        }
+        h.ServeHTTP(w, r)
+    })
 }
 
-// * REST API handlers
-func setupDataHandlers(mux *http.ServeMux, sf *service.ServiceFactory, logger *log.Logger) error {
+// Simple Basic Auth middleware
+func withAuth(h http.Handler) http.Handler {
+    const user = "admin_oghenerobo" // CHANGE HERE
+    const pass = "StrongPass!2025"  // CHANGE HERE
 
-	ds, err := sf.CreateDataService(service.SQLiteDataService)
-	if err != nil {
-		return err
-	}
-
-	mux.HandleFunc("OPTIONS /*", func(w http.ResponseWriter, r *http.Request) {
-		data.OptionsHandler(w, r)
-	})
-	mux.HandleFunc("POST /data", func(w http.ResponseWriter, r *http.Request) {
-		data.PostHandler(w, r, logger, ds)
-	})
-	mux.HandleFunc("PUT /data", func(w http.ResponseWriter, r *http.Request) {
-		data.PutHandler(w, r, logger, ds)
-	})
-	mux.HandleFunc("GET /data", func(w http.ResponseWriter, r *http.Request) {
-		data.GetHandler(w, r, logger, ds)
-	})
-	mux.HandleFunc("GET /data/{id}", func(w http.ResponseWriter, r *http.Request) {
-		data.GetByIDHandler(w, r, logger, ds)
-	})
-	mux.HandleFunc("DELETE /data/{id}", func(w http.ResponseWriter, r *http.Request) {
-		data.DeleteHandler(w, r, logger, ds)
-	})
-	return err
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        u, p, ok := r.BasicAuth()
+        if !ok || u != user || p != pass {
+            w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+            http.Error(w, "Unauthorized", http.StatusUnauthorized)
+            return
+        }
+        h.ServeHTTP(w, r)
+    })
 }
