@@ -3,16 +3,17 @@ package main
 
 import (
     "context"
-    "github.com/rex-daworker/GO-API/internal/api/repository/DAL/SQLite"
-    "github.com/rex-daworker/GO-API/internal/api/server"
-    "github.com/rex-daworker/GO-API/internal/api/service"
-    "io"
     "log"
     "net/http"
     "os"
     "os/signal"
     "syscall"
+
+    "goapi/internal/api/repository/DAL/SQLite"
+    "goapi/internal/api/server"
+    "goapi/internal/api/service"
 )
+
 
 func NewSimpleLogger(logFile string) *log.Logger {
     file, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)

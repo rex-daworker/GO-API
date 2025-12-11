@@ -3,8 +3,10 @@ package parking
 
 import (
     "context"
-    "github.com/rex-daworker/GO-API/internal/api/repository/models"
+
+    "goapi/internal/api/repository/models"
 )
+
 
 type ParkingService interface {
     Create(ev *models.ParkingEvent, ctx context.Context) error

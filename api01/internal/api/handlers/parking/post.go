@@ -1,14 +1,15 @@
 package parking
 // internal/api/handlers/parking/post.go
-package parking
 
 import (
     "encoding/json"
-    "github.com/rex-daworker/GO-API/internal/api/repository/models"
-    svc "github.com/rex-daworker/GO-API/internal/api/service/parking"
     "log"
     "net/http"
+
+    "goapi/internal/api/repository/models"
+    "goapi/internal/api/service/parking"
 )
+
 
 type PostHandler struct {
     Service svc.ParkingService

@@ -4,10 +4,12 @@ package service
 import (
     "context"
     "database/sql"
-    "github.com/rex-daworker/GO-API/internal/api/repository/DAL/SQLite"
-    pkg "github.com/rex-daworker/GO-API/internal/api/service/parking"
     "log"
+
+    "goapi/internal/api/repository/DAL/SQLite"
+    "goapi/internal/api/service/parking"
 )
+
 
 type ParkingServiceType int
 

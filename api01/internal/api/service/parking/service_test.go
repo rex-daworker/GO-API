@@ -3,11 +3,13 @@ package parking
 // internal/api/service/parking/service_test.go
 
 import (
-	"context"
-	"testing"
+    "context"
+    "testing"
 
-	"github.com/rex-daworker/GO-API/internal/api/repository/models"
+    "goapi/internal/api/repository/models"
+    "goapi/internal/api/service/parking"
 )
+
 
 type dummyRepo struct{}
 

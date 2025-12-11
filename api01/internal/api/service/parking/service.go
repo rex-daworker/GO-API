@@ -3,10 +3,12 @@ package parking
 
 import (
     "context"
-    "github.com/rex-daworker/GO-API/internal/api/repository/models"
     "strings"
     "time"
+
+    "goapi/internal/api/repository/models"
 )
+
 
 type ParkingServiceSQLite struct {
     repo models.ParkingRepository

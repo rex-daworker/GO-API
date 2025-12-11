@@ -6,9 +6,10 @@ import (
     "log"
     "net/http"
 
-    ph "github.com/rex-daworker/GO-API/internal/api/handlers/parking"
-    "github.com/rex-daworker/GO-API/internal/api/service"
+    "goapi/internal/api/handlers/parking"
+    "goapi/internal/api/service"
 )
+
 
 type Server struct {
     mux    *http.ServeMux
