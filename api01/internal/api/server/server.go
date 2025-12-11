@@ -25,9 +25,9 @@ func NewServer(ctx context.Context, sf *service.ServiceFactory, logger *log.Logg
 
 	// Protected routes using Basic Auth and method guard
 	mux.Handle("/parking", withAuth(method("POST", parking.NewPostHandler(parkingSvc))))
-	mux.Handle("/parking/", withAuth(method("PUT", parking.NewPutHandler(parkingSvc))))
+	mux.Handle("/parking/update/", withAuth(method("PUT", parking.NewPutHandler(parkingSvc))))
 	mux.Handle("/parking/all", withAuth(method("GET", parking.NewGetHandler(parkingSvc))))
-	mux.Handle("/parking/", withAuth(method("DELETE", parking.NewDeleteHandler(parkingSvc))))
+	mux.Handle("/parking/delete/", withAuth(method("DELETE", parking.NewDeleteHandler(parkingSvc))))
 
 	return &Server{
 		mux:    mux,
