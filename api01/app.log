@@ -1,1 +1,3 @@
 2025/12/11 21:18:14 main.go:61: Starting server on :8080
+2025/12/11 21:42:48 main.go:55: shutting down server...
+2025/12/11 21:58:52 main.go:61: Starting server on :8080

@@ -9,6 +9,17 @@ import (
 	"goapi/internal/api/service/parking"
 )
 
+slotID := r.URL.Query().Get("slot_id")
+pageStr := r.URL.Query().Get("page")
+page := 1
+if pageStr != "" {
+    if p, err := strconv.Atoi(pageStr); err == nil {
+        page = p
+    }
+}
+
+events, err := h.Service.ReadManyFiltered(slotID, page, 10, r.Context())
+
 type GetHandler struct {
 	Service parking.ParkingService
 }

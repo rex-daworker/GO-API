@@ -51,6 +51,23 @@ func (s *parkingServiceSQLite) Delete(ev *models.ParkingEvent, ctx context.Conte
     return s.repo.Delete(ev, ctx)
 }
 
+func (s *parkingServiceSQLite) ReadManyFiltered(slotID string, page int, rowsPerPage int, ctx context.Context) ([]*models.ParkingEvent, error) {
+    all, err := s.repo.ReadMany(page, rowsPerPage, ctx)
+    if err != nil {
+        return nil, err
+    }
+    if slotID == "" {
+        return all, nil
+    }
+    var filtered []*models.ParkingEvent
+    for _, ev := range all {
+        if ev.SlotID == slotID {
+            filtered = append(filtered, ev)
+        }
+    }
+    return filtered, nil
+}
+
 func (s *parkingServiceSQLite) Validate(ev *models.ParkingEvent) error {
     // Minimal validation rules
     if strings.TrimSpace(ev.SlotID) == "" {
