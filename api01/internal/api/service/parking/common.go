@@ -1,12 +1,10 @@
 package parking
-// internal/api/service/parking/common.go
 
 import (
     "context"
 
     "goapi/internal/api/repository/models"
 )
-
 
 type ParkingService interface {
     Create(ev *models.ParkingEvent, ctx context.Context) error
